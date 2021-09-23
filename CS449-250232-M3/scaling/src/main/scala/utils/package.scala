@@ -148,12 +148,10 @@ package object utils {
       (u,i,pred)
     }
 
-
     val predictionsBuilder = new CSCMatrix.Builder[Double](rows = Y.rows, cols = Y.cols)
 
     val predictions = sc.parallelize(Y.activeIterator.map{case ((user,item),rating) => (user,item)}.toList)
       .map(x => predict_ui(x._1,x._2)).collect()
-
 
     for ((u,i,value) <- predictions) predictionsBuilder.add(u,i,value)
     predictionsBuilder.result()
@@ -181,18 +179,6 @@ package object utils {
     val kSimilarities = parallel_knn(X, sc, k) // NbUsers * NbUsers: (v, u)
 
     val simsTime = (System.nanoTime- simStart)/pow(10.0,3)
-
-    val similarities_br = sc.broadcast(kSimilarities)
-
-    val itemsRated = X.mapActiveValues(_=>1.0) // Rating(u,movies)
-
-    // Weighted sum (User Specific) Parallel
-
-    /*val num = kSimilarities.t * normDevs // users * movies
-    val itemsRated = X.mapActiveValues(_=>1.0) // Rating(u,movies)
-    val absSims = kSimilarities.mapActiveValues(math.abs) // S(v,u)
-    val denum = absSims.t * itemsRated*/
-
 
     // Avergae per user
     val unitVector = DenseVector.ones[Double](X.cols) // nbMovies * 1
